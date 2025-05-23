@@ -17,7 +17,7 @@ function Reg() {
     if (isLogin) {
       // ดึงข้อมูลผู้ใช้ทั้งหมดจาก API
       try {
-        const res = await fetch('https://api-meory-project.up.railway.app/alluser');
+        const res = await fetch('https://localhost:8080/alluser');
         if (!res.ok) {
           setError('ไม่สามารถเชื่อมต่อ API ได้');
           return;
@@ -40,7 +40,7 @@ function Reg() {
       // สมัครสมาชิก ส่งข้อมูลไป API
       if (username && password && email) {
         try {
-          const res = await fetch('https://api-meory-project.up.railway.app/adduser', {
+          const res = await fetch('https://localhost:8080/adduser', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password, email })
