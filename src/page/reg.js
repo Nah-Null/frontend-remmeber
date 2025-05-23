@@ -1,25 +1,29 @@
 import React, { useState } from 'react';
 import './css/reg.css';
 import Pattern from './Pattern';
-// import { useNavigate } from 'react-router-dom';
+import Loading from './Londing';
+import { useNavigate } from 'react-router-dom';
 
 
 function Reg() {
-  // const navigate = useNavigate(); // ประกาศ hook ตรงนี้
+  const navigator = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false); // เพิ่ม state loading
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true); // เริ่มโหลด
     if (isLogin) {
       // ดึงข้อมูลผู้ใช้ทั้งหมดจาก API
       try {
-        const res = await fetch('https://localhost:8080/alluser');
+        const res = await fetch('http://localhost:8080/alluser');
         if (!res.ok) {
           setError('ไม่สามารถเชื่อมต่อ API ได้');
+          setLoading(false);
           return;
         }
         const users = await res.json();
@@ -28,19 +32,25 @@ function Reg() {
           (u) => u.username === username && u.password === password
         );
         if (found) {
-          // setError('');
-          // navigate('/home'); // ไปหน้า Home หลัง login สำเร็จ
+          setError('');
+          setUsername('');
+          setPassword('');
+          setEmail('');
+          navigator('/home', { state: { userId: found.id } }); // ส่ง userId ไปหน้า Home
+          setLoading(false);
+          return;
         } else {
           setError('Username หรือ Password ไม่ถูกต้อง');
         }
       } catch (err) {
         setError('เกิดข้อผิดพลาดในการเชื่อมต่อ: ' + err.message);
       }
+      setLoading(false); // หยุดโหลด
     } else {
       // สมัครสมาชิก ส่งข้อมูลไป API
       if (username && password && email) {
         try {
-          const res = await fetch('https://localhost:8080/adduser', {
+          const res = await fetch('http://localhost:8080/adduser', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password, email })
@@ -57,18 +67,24 @@ function Reg() {
         } catch (err) {
           setError('เกิดข้อผิดพลาดในการเชื่อมต่อ: ' + err.message);
         }
+        setLoading(false); // หยุดโหลด
       } else {
         setError('กรุณากรอกข้อมูลให้ครบถ้วน');
+        setLoading(false); // หยุดโหลด
       }
     }
   };
 
+  if (loading) {
+    return <Loading />;
+  }
+
   return (
     <Pattern>
       <div className="App">
-        <header className="App-header">
-          <h2>{isLogin ? 'Login' : 'Sign Up'}</h2>
+        <header className="App-header" style={{ textAlign: "center" }}>
           <form onSubmit={handleSubmit}>
+            <h2>{isLogin ? 'Login' : 'Sign Up'}</h2>
             <input
               type="text"
               placeholder="Username"
