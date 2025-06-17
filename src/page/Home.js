@@ -5,10 +5,10 @@ import { useLocation, useNavigate } from 'react-router-dom'; // เพิ่ม 
 function Home() {
   const [user, setUser] = useState(null);
   const location = useLocation();
-  const navigate = useNavigate(); // ประกาศ navigate
+  const navigate = useNavigate();
+
 
   useEffect(() => {
-    // รับ userId จาก state ที่ส่งมาจากหน้า login
     const userId = location.state?.userId;
 
     if (userId) {
@@ -24,10 +24,16 @@ function Home() {
 
   const username = user ? user.username : '';
 
-  // ฟังก์ชันเมื่อกดปุ่ม ADD
   const handleAdd = () => {
-    navigate('/management'); // ใช้ navigate แทน navigator
+    navigate('/management');
+    localStorage.setItem('username', username);
+    console.log('Username saved to localStorage:', username);
   };
+
+  const handleLogout = () => {
+    localStorage.removeItem('username');
+    navigate('/login', { replace: true }); // เปลี่ยนเส้นทางและลบประวัติ
+};
 
   return (
     <Pattern>
@@ -52,6 +58,7 @@ function Home() {
           ADD
         </button>
       </div>
+
       <div style={{
         background: 'rgba(255,255,255,0.9)',
         padding: '2rem 3rem',
@@ -63,6 +70,23 @@ function Home() {
         <h1>Remember Me</h1>
         {username && <h2>สวัสดีคุณ {username}</h2>}
         <p>ยินดีต้อนรับสู่การบันทึกความทรงจำของคุณ!</p>
+        <p>กดปุ่ม ADD เพื่อเพิ่มความทรงจำของคุณกัน</p>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+                <button
+                    onClick={handleLogout}
+                    style={{
+                        background: '#e53935',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '1rem',
+                        padding: '0.4rem 1.2rem',
+                        cursor: 'pointer',
+                        fontWeight: 'bold'
+                    }}
+                >
+                    ออกจากระบบ
+                </button>
+            </div>
       </div>
     </Pattern>
   );

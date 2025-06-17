@@ -20,7 +20,6 @@ function Management() {
 
     // ปุ่มเดียวสำหรับทั้งอัพโหลดและส่งข้อความ
     const handleSubmit = async () => {
-        let sent = false;
 
         // อัพโหลดไฟล์ถ้ามี
         if (selectedFile) {
@@ -30,17 +29,6 @@ function Management() {
                 method: 'POST',
                 body: formData,
             });
-            sent = true;
-        }
-
-        // ส่งข้อความ (ตัวอย่าง: alert)
-        if (message.trim()) {
-            alert('ส่งข้อความ: ' + message);
-            sent = true;
-        }
-
-        if (sent) {
-            alert('ส่งข้อมูลสำเร็จ!');
         }
 
         // รีเซ็ตค่า
@@ -48,6 +36,9 @@ function Management() {
         setPreviewUrl(null);
         setMessage('');
     };
+
+    // สมมติว่าคุณเก็บ username ใน localStorage หลัง login
+    const username = localStorage.getItem('username') || '';
 
     return (
         <Pattern>
@@ -128,8 +119,40 @@ function Management() {
                         onChange={e => setMessage(e.target.value)}
                     />
                     <button
-                        onClick={handleSubmit}
-                        disabled={!message.trim() && !selectedFile}
+                        onClick={async () => {
+                            handleSubmit();
+                            let sent = false;
+                            const formData = new FormData();
+                            if (selectedFile) {
+                                formData.append('file', selectedFile);
+                            }
+                            if (message.trim()) {
+                                formData.append('message', message.trim());
+                            }
+                            // เพิ่ม username เข้าไปใน formData
+                            if (username) {
+                                formData.append('username', username);
+                            }
+                            if ((selectedFile || message.trim()) && username) {
+                                await fetch('http://localhost:8080/upload', {
+                                    method: 'POST',
+                                    body: formData,
+                                });
+                                sent = true;
+                            } else if (!(selectedFile || message.trim())) {
+                                alert('กรุณาเลือกไฟล์หรือกรอกข้อความ');
+                            } else if (!username) {
+                                alert('ไม่พบข้อมูลผู้ใช้ กรุณาเข้าสู่ระบบใหม่');
+                            }
+                            if (sent) {
+                                window.location.reload();
+                            }
+                            
+                            setSelectedFile(null);
+                            setPreviewUrl(null);
+                            setMessage('');
+                        }}
+                        disabled={!username || (!message.trim() && !selectedFile)}
                         style={{
                             marginTop: '1rem',
                             backgroundColor: '#1976d2',
@@ -137,8 +160,8 @@ function Management() {
                             border: 'none',
                             padding: '0.6rem 1.5rem',
                             borderRadius: '1rem',
-                            cursor: (message.trim() || selectedFile) ? 'pointer' : 'not-allowed',
-                            opacity: (message.trim() || selectedFile) ? 1 : 0.5,
+                            cursor: (message.trim() || selectedFile) && username ? 'pointer' : 'not-allowed',
+                            opacity: (message.trim() || selectedFile) && username ? 1 : 0.5,
                             width: '100%',
                             boxSizing: 'border-box',
                         }}
